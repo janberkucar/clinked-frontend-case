@@ -18,7 +18,7 @@ Altough, the architecture is SSR-ready and can be extended using Angular Univers
 
 First Day : Fri Apr 17 20:45
 
-- CLNKD-01: Initialize standalone and zoneless Angular configuration.
+- CLNKD-01: Initialize standalone and zoneless Angular configuration + Define routing with auxiliary comments outlet and routing.
 
 ## Additional Resources
 

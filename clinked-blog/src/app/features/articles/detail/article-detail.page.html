@@ -1,0 +1,10 @@
+<p>article-detail works!</p>
+<button
+  type="button"
+  [routerLink]="[{ outlets: { side: ['comments'] } }]"
+  queryParamsHandling="preserve"
+  aria-label="Open comments panel"
+>
+  Open comments
+</button>
+<router-outlet name="side"></router-outlet>
