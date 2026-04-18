@@ -1,6 +1,5 @@
 import type { CommentDto } from '../dto/comment.dto';
 import type { Comment } from '../../../shared/models/comment.model';
-
 // NOTE(@Janberk): Map method for singular Comment DTO.
 export function mapCommentFromDto(dto: CommentDto): Comment {
   return {
@@ -10,7 +9,6 @@ export function mapCommentFromDto(dto: CommentDto): Comment {
     createdAt: dto.createdAt,
   };
 }
-
 // NOTE(@Janberk): Map method for whole array of Comments DTO.
 export function mapCommentsFromDto(dtos: readonly CommentDto[]): Comment[] {
   return dtos.map(mapCommentFromDto);

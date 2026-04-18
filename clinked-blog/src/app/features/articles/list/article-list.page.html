@@ -1,1 +1,50 @@
-<p>article-list works!</p>
+<section
+  class="list-container article-list-page"
+  aria-labelledby="article-list-heading"
+>
+  <header class="list-header">
+    <div>
+      <h1 id="article-list-heading" class="cbl-list__title">Articles</h1>
+    </div>
+    <div class="cbl-list__search">
+      <label class="visually-hidden" for="article-search"
+        >Search by title</label
+      >
+      <input
+        id="article-search"
+        class="cbl-list__search-input"
+        type="search"
+        placeholder="Search by title…"
+        [formControl]="searchControl"
+        autocomplete="off"
+      />
+    </div>
+  </header>
+
+  @if (uiState() === 'loading') {
+  <p class="cbl-list__empty" role="status">Loading articles…</p>
+  } @else if (uiState() === 'empty') {
+  <p class="cbl-list__empty" role="status">No articles available</p>
+  } @else if (uiState() === 'no-results') {
+  <p class="cbl-list__empty" role="status">No matching articles</p>
+  } @else {
+
+  <ul class="list-grid">
+    @for (article of filteredArticles(); track trackById($index, article)) {
+    <li>
+      <a class="list-card" [routerLink]="['/article', article.id]">
+        <h2 class="list-card__title">{{ article.title }}</h2>
+        <p class="list-card__meta">
+          Published {{ article.publishedDate | date: 'medium' }} · {{
+          article.commentCount }} comments
+        </p>
+        <p class="list-card__excerpt">{{ article.excerpt }}</p>
+        @if (article.category) {
+        <span class="list-card__badge">{{ article.category }}</span>
+        }
+      </a>
+    </li>
+    }
+  </ul>
+  }
+</section>

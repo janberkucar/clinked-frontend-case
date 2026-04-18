@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 
+import { articleCreateCanDeactivateGuard } from './create/article-create.can-deactivate';
+
 export const ARTICLES_ROUTES: Routes = [
   {
     path: '',
@@ -10,6 +12,7 @@ export const ARTICLES_ROUTES: Routes = [
     path: 'create',
     loadComponent: () =>
       import('./create/article-create.page').then((m) => m.ArticleCreatePage),
+    canDeactivate: [articleCreateCanDeactivateGuard],
   },
   {
     path: 'article/:id',

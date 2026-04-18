@@ -1,0 +1,43 @@
+@use "../../../styles/tokens" as tokens;
+
+.list-container {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-lg;
+}
+.list-header {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-lg;
+}
+.list-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: tokens.$spacing-lg;
+}
+.list-card {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-lg;
+
+  &__title {
+    font-size: tokens.$font-size-lg;
+    font-weight: tokens.$font-weight-bold;
+    color: black;
+  }
+  &__meta {
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-normal;
+    color: black;
+  }
+  &__excerpt {
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-normal;
+    color: black;
+  }
+  &__badge {
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-normal;
+    color: black;
+  }
+}
