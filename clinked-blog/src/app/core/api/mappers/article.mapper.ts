@@ -1,7 +1,10 @@
+/* DTO Imports */
 import type { ArticleDto } from '../dto/article.dto';
+/* Model Imports */
 import type { ArticleListItem } from '../../../shared/models/article-list-item.model';
 import type { Article } from '../../../shared/models/article.model';
 
+/* Constants */
 // NOTE(@Janberk): From the case study, the max length of the excerpt is 160 characters.
 export const ARTICLE_EXCERPT_MAX_LENGTH = 160;
 

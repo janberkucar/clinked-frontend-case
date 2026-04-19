@@ -1,3 +1,4 @@
+/* Core Imports */
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,17 +7,22 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+/* Forms Imports */
 import {
   FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+/* Router Imports */
+import { Router, RouterLink } from '@angular/router';
+/* RxJS Imports */
 import { finalize } from 'rxjs';
-
+/* DTO Imports */
 import type { CreateArticlePayload } from '../../../core/api/dto/article.dto';
+/* API Imports */
 import { ArticleApiService } from '../../../core/api/services/article-api.service';
+/* Model Imports */
 import {
   ARTICLE_CATEGORY_OPTIONS,
   type ArticleCategory,
@@ -24,7 +30,7 @@ import {
 
 @Component({
   selector: 'app-article-create',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './article-create.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

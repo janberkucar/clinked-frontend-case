@@ -1,3 +1,4 @@
+/* Core Imports */
 import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -6,7 +7,7 @@ import {
   inject,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink, RouterOutlet } from '@angular/router';
+/* RxJS Imports */
 import {
   catchError,
   combineLatest,
@@ -16,11 +17,15 @@ import {
   startWith,
   switchMap,
 } from 'rxjs';
-
+/* API Imports */
 import { ArticleApiService } from '../../../core/api/services/article-api.service';
+/* Model Imports */
 import type { Article } from '../../../shared/models/article.model';
+/* Router Imports */
+import { ActivatedRoute, RouterLink, RouterOutlet } from '@angular/router';
 
-type DetailLoadState =
+/* UI State */
+type ArticleDetailUIState =
   | { readonly kind: 'loading' }
   | { readonly kind: 'notFound' }
   | { readonly kind: 'error'; readonly message: string }
@@ -37,41 +42,37 @@ export class ArticleDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly articleApi = inject(ArticleApiService);
 
-  /**
-   * Route param + comment mutations → `getArticleById` so `commentCount` stays in sync
-   * after `addComment` without duplicating count state in the template.
-   */
   readonly detailState = toSignal(
     combineLatest([
       this.route.paramMap,
       this.articleApi.commentsChangedForArticle$.pipe(
-        startWith(null as string | null),
+        startWith(null as string | null)
       ),
     ]).pipe(
-      map(([pm]) => pm.get('id')),
-      switchMap((id): Observable<DetailLoadState> => {
+      map(([paramMap]) => paramMap.get('id')),
+      switchMap((id): Observable<ArticleDetailUIState> => {
         if (!id?.trim()) {
           return of({ kind: 'notFound' } as const);
         }
         return this.articleApi.getArticleById(id).pipe(
           map(
-            (article): DetailLoadState =>
+            (article): ArticleDetailUIState =>
               article ? { kind: 'ready', article } : { kind: 'notFound' },
           ),
           catchError(
-            (err: unknown): Observable<DetailLoadState> =>
+            (err: unknown): Observable<ArticleDetailUIState> =>
               of({
                 kind: 'error',
                 message:
                   err instanceof Error ? err.message : 'Failed to load article',
               }),
           ),
-          startWith<DetailLoadState>({ kind: 'loading' }),
+          startWith<ArticleDetailUIState>({ kind: 'loading' }),
         );
       }),
     ),
     {
-      initialValue: { kind: 'loading' } satisfies DetailLoadState,
+      initialValue: { kind: 'loading' } satisfies ArticleDetailUIState,
     },
   );
 

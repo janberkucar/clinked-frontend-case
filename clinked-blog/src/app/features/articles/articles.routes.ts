@@ -1,5 +1,6 @@
+/* Router Imports */
 import { Routes } from '@angular/router';
-
+/* Feature Imports */
 import { articleCreateCanDeactivateGuard } from './create/article-create.can-deactivate';
 
 export const ARTICLES_ROUTES: Routes = [

@@ -1,81 +1,123 @@
+/* Core Imports */
 import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
   HostListener,
   inject,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
+/* Forms Imports */
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+/* Router Imports */
 import {
-  FormControl,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+  ActivatedRoute,
+  NavigationEnd,
+  Router,
+  type ActivatedRouteSnapshot,
+} from '@angular/router';
+/* RxJS Imports */
 import {
   catchError,
   combineLatest,
+  distinctUntilChanged,
+  filter,
   finalize,
   map,
+  merge,
   of,
   startWith,
   switchMap,
+  take,
 } from 'rxjs';
-
+/* API Imports */
 import { ArticleApiService } from '../../../core/api/services/article-api.service';
+/* Model Imports */
 import type { Comment } from '../../../shared/models/comment.model';
 
 type CommentsState =
   | { readonly kind: 'noArticle' }
+  | { readonly kind: 'articleNotFound' }
   | { readonly kind: 'loading' }
   | { readonly kind: 'empty' }
   | { readonly kind: 'ready'; readonly comments: readonly Comment[] }
   | { readonly kind: 'error'; readonly message: string };
 
+function articleIdFromRouterUrl(url: string): string | null {
+  const path = url.startsWith('/') ? url : `/${url}`;
+  const match = /\/article\/([^/?#(;]+)/.exec(path);
+  const segment = match?.[1]?.trim();
+  return segment ? decodeURIComponent(segment) : null;
+}
+
+// NOTE(@Janberk): Named-outlet children do not always inherit `id` on `paramMap`; walk ancestors then the full router snapshot (then URL).
+function articleIdFromActivatedRouteTree(route: ActivatedRoute): string | null {
+  let r: ActivatedRoute | null = route;
+  while (r) {
+    const id = r.snapshot.paramMap.get('id');
+    if (id != null && id.trim() !== '') {
+      return id;
+    }
+    r = r.parent;
+  }
+  return null;
+}
+
+function firstArticleIdInSnapshotTree(
+  root: ActivatedRouteSnapshot,
+): string | null {
+  const id = root.paramMap.get('id');
+  if (id != null && id.trim() !== '') {
+    return id;
+  }
+  for (const child of root.children) {
+    const found = firstArticleIdInSnapshotTree(child);
+    if (found != null) {
+      return found;
+    }
+  }
+  return null;
+}
+
+function pickArticleId(route: ActivatedRoute, router: Router): string | null {
+  const raw =
+    articleIdFromActivatedRouteTree(route) ??
+    (router.routerState?.snapshot?.root
+      ? firstArticleIdInSnapshotTree(router.routerState.snapshot.root)
+      : null) ??
+    articleIdFromRouterUrl(router.url);
+  const trimmed = raw?.trim();
+  return trimmed === '' || trimmed === undefined ? null : trimmed;
+}
+
 @Component({
   selector: 'app-comment-list',
-  imports: [RouterLink, ReactiveFormsModule, DatePipe],
+  imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './comment-list.component.html',
   styleUrl: './comment-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CommentListComponent {
-  private static nearestRouteWithParam(
-    route: ActivatedRoute,
-    param: string,
-  ): ActivatedRoute {
-    let r: ActivatedRoute | null = route;
-    while (r) {
-      if (r.snapshot?.paramMap?.has(param)) {
-        return r;
-      }
-      r = r.parent ?? null;
-    }
-    return route.parent ?? route;
-  }
-
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly articleApi = inject(ArticleApiService);
-  private readonly destroyRef = inject(DestroyRef);
 
-  private readonly articleRoute = CommentListComponent.nearestRouteWithParam(
-    this.route,
-    'id',
+  private readonly articleRoute = this.route.parent ?? this.route;
+
+  private readonly articleId$ = merge(
+    of(null),
+    this.articleRoute.paramMap.pipe(map(() => null)),
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+    ),
+  ).pipe(
+    map(() => pickArticleId(this.route, this.router)),
+    distinctUntilChanged(),
   );
 
-  /** Same base as the article route when using `[{ outlets: { side: null } }]`. */
-  protected readonly relativeTo = this.articleRoute;
-
-  private readonly parentParamMap$ = this.articleRoute.paramMap;
-
-  readonly articleId = toSignal(
-    this.parentParamMap$.pipe(map((pm) => pm.get('id'))),
-    { initialValue: null as string | null },
-  );
+  readonly articleId = toSignal(this.articleId$, { initialValue: null });
 
   readonly contentControl = new FormControl('', {
     nonNullable: true,
@@ -83,34 +125,48 @@ export class CommentListComponent {
   });
 
   readonly submitting = signal(false);
+  readonly commentPostError = signal<string | null>(null);
 
   readonly commentsState = toSignal(
     combineLatest([
-      this.parentParamMap$.pipe(map((pm) => pm.get('id'))),
+      this.articleId$,
       this.articleApi.commentsChangedForArticle$.pipe(
         startWith(null as string | null),
       ),
     ]).pipe(
-      switchMap(([articleId, _changed]) => {
-        if (!articleId?.trim()) {
+      switchMap(([articleId, changed]) => {
+        if (articleId == null || articleId.trim() === '') {
           return of<CommentsState>({ kind: 'noArticle' });
         }
-        return this.articleApi.getComments(articleId).pipe(
-          map((rows): CommentsState =>
-            rows.length > 0
-              ? { kind: 'ready', comments: rows }
-              : { kind: 'empty' },
-          ),
-          catchError((err: unknown) =>
-            of<CommentsState>({
-              kind: 'error',
-              message:
-                err instanceof Error
-                  ? err.message
-                  : 'Failed to load comments',
-            }),
-          ),
-          startWith<CommentsState>({ kind: 'loading' }),
+        const skipLoading = changed !== null && changed === articleId;
+
+        return this.articleApi.getArticleById(articleId).pipe(
+          switchMap((article) => {
+            if (!article) {
+              return of<CommentsState>({ kind: 'articleNotFound' });
+            }
+            const data$ = this.articleApi.getComments(articleId).pipe(
+              map(
+                (rows): CommentsState =>
+                  rows.length > 0
+                    ? { kind: 'ready', comments: rows }
+                    : { kind: 'empty' },
+              ),
+              catchError((err: unknown) =>
+                of<CommentsState>({
+                  kind: 'error',
+                  message:
+                    err instanceof Error
+                      ? err.message
+                      : 'Failed to load comments',
+                }),
+              ),
+            );
+            if (skipLoading) {
+              return data$;
+            }
+            return data$.pipe(startWith<CommentsState>({ kind: 'loading' }));
+          }),
         );
       }),
     ),
@@ -127,47 +183,70 @@ export class CommentListComponent {
     return s.kind === 'ready' ? s.comments : null;
   });
 
-  /**
-   * Absolute commands so closing the `side` outlet works even when the named-outlet
-   * route’s parent chain does not match `article/:id` the way `routerLink` expects.
-   * Must stay aligned with `articles.routes` (`path: 'article/:id'`).
-   */
   readonly closeSideOutletCommands = computed((): unknown[] | null => {
     const id = this.articleId();
-    if (!id?.trim()) {
+    if (id == null || id.trim() === '') {
       return null;
     }
     return ['/article', id, { outlets: { side: null } }];
   });
 
   onSubmit(): void {
-    const id = this.articleId();
+    // NOTE(@Janberk): Resolve id from the router here (not only the signal) so submit always matches the URL/aux-outlet tree.
+    const id = pickArticleId(this.route, this.router);
     const raw = this.contentControl.value.trim();
-    if (!id?.trim() || this.submitting()) {
+    if (id == null) {
+      this.commentPostError.set(
+        'Could not resolve the article for this panel. Try closing and opening comments again.',
+      );
       return;
     }
-    if (this.contentControl.invalid || raw.length === 0) {
+    if (this.submitting()) {
+      return;
+    }
+    if (raw.length === 0) {
       this.contentControl.markAsTouched();
       return;
     }
 
+    this.commentPostError.set(null);
     this.submitting.set(true);
     this.articleApi
       .addComment(id, raw)
       .pipe(
-        takeUntilDestroyed(this.destroyRef),
+        take(1),
         finalize(() => this.submitting.set(false)),
       )
       .subscribe({
         next: () => {
+          this.commentPostError.set(null);
           this.contentControl.reset('', { emitEvent: false });
           this.contentControl.markAsPristine();
           this.contentControl.markAsUntouched();
         },
-        error: () => {
-          /* keep form; optional: toast */
+        error: (err: unknown) => {
+          this.commentPostError.set(
+            err instanceof Error
+              ? err.message
+              : 'Could not post your comment. Please try again.',
+          );
         },
       });
+  }
+
+  attemptClose(): void {
+    if (!this.confirmDiscardPendingComment()) {
+      return;
+    }
+    this.closePanel();
+  }
+
+  private confirmDiscardPendingComment(): boolean {
+    const raw = this.contentControl.value.trim();
+    if (!this.contentControl.dirty || raw.length === 0) {
+      return true;
+    }
+    return window.confirm('Discard this comment? Your text will not be saved.');
   }
 
   closePanel(): void {
@@ -186,7 +265,7 @@ export class CommentListComponent {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.closePanel();
+    this.attemptClose();
   }
 
   trackById(_index: number, item: Comment): string {

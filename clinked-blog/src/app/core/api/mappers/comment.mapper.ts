@@ -1,4 +1,6 @@
+/* DTO Imports */
 import type { CommentDto } from '../dto/comment.dto';
+/* Model Imports */
 import type { Comment } from '../../../shared/models/comment.model';
 // NOTE(@Janberk): Map method for singular Comment DTO.
 export function mapCommentFromDto(dto: CommentDto): Comment {

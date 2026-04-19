@@ -1,18 +1,18 @@
 <section
   class="list-container article-list-page"
-  aria-labelledby="article-list-heading"
+  aria-labelledby="article-list-container"
 >
   <header class="list-header">
     <div>
-      <h1 id="article-list-heading" class="cbl-list__title">Articles</h1>
+      <h1 id="article-list-heading" class="article-list__title">Articles</h1>
     </div>
-    <div class="cbl-list__search">
+    <div class="article-list__search">
       <label class="visually-hidden" for="article-search"
         >Search by title</label
       >
       <input
         id="article-search"
-        class="cbl-list__search-input"
+        class="article-list__search-input"
         type="search"
         placeholder="Search by title…"
         [formControl]="searchControl"
@@ -20,15 +20,13 @@
       />
     </div>
   </header>
-
-  @if (uiState() === 'loading') {
-  <p class="cbl-list__empty" role="status">Loading articles…</p>
-  } @else if (uiState() === 'empty') {
-  <p class="cbl-list__empty" role="status">No articles available</p>
-  } @else if (uiState() === 'no-results') {
-  <p class="cbl-list__empty" role="status">No matching articles</p>
+  @if (listState() === 'loading') {
+  <p class="status-role__loading" role="status">Loading articles…</p>
+  } @else if (listState() === 'empty') {
+  <p class="status-role__empty" role="status">No articles available</p>
+  } @else if (listState() === 'no-results') {
+  <p class="status-role__notFound" role="status">No matching articles</p>
   } @else {
-
   <ul class="list-grid">
     @for (article of filteredArticles(); track trackById($index, article)) {
     <li>

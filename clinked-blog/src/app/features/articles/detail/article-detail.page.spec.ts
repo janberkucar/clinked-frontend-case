@@ -14,7 +14,7 @@ describe('ArticleDetailPage', () => {
   let fixture: ComponentFixture<ArticleDetailPage>;
   let paramMap$: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
   let getArticleByIdSpy: jasmine.Spy;
-  const commentsChanged$ = new Subject<string>();
+  let commentsChanged$: Subject<string>;
 
   const mockArticle: Article = {
     id: '0',
@@ -26,6 +26,7 @@ describe('ArticleDetailPage', () => {
   };
 
   beforeEach(async () => {
+    commentsChanged$ = new Subject<string>();
     paramMap$ = new BehaviorSubject(convertToParamMap({ id: '0' }));
     getArticleByIdSpy = jasmine
       .createSpy('getArticleById')
@@ -58,6 +59,7 @@ describe('ArticleDetailPage', () => {
   });
 
   it('should show not found when id param is missing', () => {
+    getArticleByIdSpy.calls.reset();
     paramMap$.next(convertToParamMap({}));
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Article not found');
@@ -76,7 +78,7 @@ describe('ArticleDetailPage', () => {
     expect(text).toContain('Test title');
     expect(text).toContain('1 comments');
     expect(text).toContain('Hello');
-    expect(text).not.toContain('<script>');
+    expect(fixture.nativeElement.querySelector('article script')).toBeNull();
   });
 
   it('should show not found when API returns null', async () => {

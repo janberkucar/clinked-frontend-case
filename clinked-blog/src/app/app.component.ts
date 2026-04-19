@@ -1,4 +1,6 @@
+/* Core Imports */
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+/* Router Imports */
 import { RouterLink, RouterOutlet } from '@angular/router';
 
 @Component({

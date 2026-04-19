@@ -1,1 +1,63 @@
-<p>article-create works!</p>
+<h1>Create article</h1>
+<p><a routerLink="/">Back to articles</a></p>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+  <div>
+    <label for="article-title">Title</label>
+    <input
+      id="article-title"
+      type="text"
+      formControlName="title"
+      maxlength="101"
+      autocomplete="off"
+      aria-required="true"
+      [attr.aria-invalid]="
+        form.controls.title.invalid && form.controls.title.touched
+      "
+    />
+    @if (form.controls.title.touched && form.controls.title.errors?.['required']) {
+      <p role="alert">Title is required.</p>
+    }
+    @if (form.controls.title.touched && form.controls.title.errors?.['maxlength']) {
+      <p role="alert">Title must be at most 101 characters.</p>
+    }
+  </div>
+
+  <div>
+    <label for="article-content">Content</label>
+    <textarea
+      id="article-content"
+      formControlName="content"
+      rows="6"
+      aria-required="true"
+      [attr.aria-invalid]="
+        form.controls.content.invalid && form.controls.content.touched
+      "
+    ></textarea>
+    @if (form.controls.content.touched && form.controls.content.errors?.['required']) {
+      <p role="alert">Content is required.</p>
+    }
+  </div>
+
+  <div>
+    <label for="article-category">Category (optional)</label>
+    <select id="article-category" formControlName="category">
+      <option value="">None</option>
+      @for (opt of categoryOptions; track opt) {
+        <option [value]="opt">{{ opt }}</option>
+      }
+    </select>
+  </div>
+
+  @if (submitError(); as err) {
+    <p role="alert">{{ err }}</p>
+  }
+
+  <button type="submit" [disabled]="form.invalid || submitting()">
+    @if (submitting()) {
+      Creating…
+    } @else {
+      Create article
+    }
+  </button>
+</form>

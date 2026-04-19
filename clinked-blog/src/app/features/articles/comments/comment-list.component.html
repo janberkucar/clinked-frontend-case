@@ -1,87 +1,84 @@
-<div
-  class="comment-panel__backdrop"
-  role="presentation"
-  aria-hidden="true"
-  (click)="closePanel()"
-></div>
-
-<section class="comment-panel" aria-labelledby="comments-heading">
+<section
+  class="comment-panel-container"
+  aria-labelledby="comment-panel-container"
+>
   <header class="comment-panel__header">
-    <h2 id="comments-heading">Comments</h2>
-    @if (closeSideOutletCommands(); as closeCmds) {
-      <button
-        type="button"
-        class="comment-panel__close"
-        [routerLink]="closeCmds"
-        queryParamsHandling="preserve"
-        aria-label="Close comments panel"
-      >
-        Close
-      </button>
-    } @else {
-      <button
-        type="button"
-        class="comment-panel__close"
-        [routerLink]="[{ outlets: { side: null } }]"
-        [relativeTo]="relativeTo"
-        queryParamsHandling="preserve"
-        aria-label="Close comments panel"
-      >
-        Close
-      </button>
-    }
+    <h2 id="article-comment-panel-heading" class="comment-panel__title">
+      Comments
+    </h2>
+    <button
+      type="button"
+      class="comment-panel__closeCmds"
+      (click)="attemptClose()"
+      aria-label="Close comments panel"
+    >
+      Close
+    </button>
   </header>
-
   @switch (commentsState().kind) {
-    @case ('noArticle') {
-      <p role="status">No article context.</p>
+    @case ("noArticle") {
+      <p class="status-role__notFound" role="status">No results.</p>
     }
-    @case ('loading') {
-      <p role="status">Loading comments…</p>
+    @case ("articleNotFound") {
+      <p class="status-role__notFound" role="status">
+        Article not found. Comments unavailable.
+      </p>
     }
-    @case ('error') {
-      <p role="alert">{{ commentsErrorMessage() }}</p>
+    @case ("loading") {
+      <p class="status-role__loading" role="status">Loading comments…</p>
     }
-    @case ('empty') {
-      <p role="status">No comments yet.</p>
+    @case ("error") {
+      <p class="alert-role__error" role="alert">{{ commentsErrorMessage() }}</p>
     }
-    @case ('ready') {
+    @case ("empty") {
+      <p class="status-role__empty" role="status">No comments yet.</p>
+    }
+    @case ("ready") {
       <ul class="comment-panel__list" role="list">
-        @for (c of readyComments()!; track trackById($index, c)) {
+        @for (comment of readyComments()!; track trackById($index, comment)) {
           <li class="comment-panel__item" role="listitem">
-            <time [attr.datetime]="c.createdAt">{{
-              c.createdAt | date: 'medium'
+            <time [attr.datetime]="comment.createdAt">{{
+              comment.createdAt | date: "medium"
             }}</time>
-            <p class="comment-panel__body" [innerText]="c.content"></p>
+            <p class="comment-panel__body" [innerText]="comment.content"></p>
           </li>
         }
       </ul>
     }
   }
-
-  <form class="comment-panel__form" (ngSubmit)="onSubmit()" novalidate>
-    <label for="new-comment">New comment</label>
-    <textarea
-      id="new-comment"
-      class="comment-panel__textarea"
-      rows="3"
-      [formControl]="contentControl"
-      aria-required="true"
-      [attr.aria-invalid]="contentControl.invalid && contentControl.touched"
-    ></textarea>
-    @if (contentControl.invalid && contentControl.touched) {
-      <p class="comment-panel__field-error" role="alert">Comment is required.</p>
-    }
-    <button
-      type="submit"
-      class="comment-panel__submit"
-      [disabled]="submitting() || contentControl.invalid"
-    >
-      @if (submitting()) {
-        Posting…
-      } @else {
-        Post comment
+  @if (commentsState().kind !== "articleNotFound") {
+    <form class="comment-panel__form" novalidate>
+      <label class="comment-panel__form__title" for="new-comment"
+        >New comment</label
+      >
+      <textarea
+        id="new-comment"
+        class="comment-panel__form__textarea"
+        rows="3"
+        [formControl]="contentControl"
+        aria-required="true"
+        [attr.aria-invalid]="contentControl.invalid && contentControl.touched"
+      ></textarea>
+      @if (contentControl.invalid && contentControl.touched) {
+        <p class="comment-panel__form__requiredText" role="alert">
+          Comment is required.
+        </p>
       }
-    </button>
-  </form>
+      @if (commentPostError(); as postErr) {
+        <p class="comment-panel__form__postError" role="alert">{{ postErr }}</p>
+      }
+      <button
+        type="button"
+        class="comment-panel__form__cta"
+        [disabled]="submitting()"
+        (click)="onSubmit()"
+      >
+        @if (submitting()) {
+          Posting…
+        } @else {
+          Post comment
+        }
+      </button>
+    </form>
+  }
 </section>

@@ -1,5 +1,6 @@
 /* Core Imports */
 import { Injectable } from '@angular/core';
+/* RxJS Imports */
 import {
   defer,
   delay,
@@ -29,11 +30,12 @@ import {
   ARTICLE_CATEGORY_OPTIONS,
   type ArticleCategory,
 } from '../../../shared/models/article.category';
+
 /* Constants */
 const MOCK_LATENCY_MS = 180;
-// NOTE(@Janberk): The fields does not need to include 'commentCount' since it is always derived from '#commentsByArticleId'.
+// NOTE(@Janberk): `ArticleDtoSeed` omits `commentCount`; it is always derived from `#commentsByArticleId`.
 type ArticleDtoSeed = Omit<ArticleDto, 'commentCount'>;
-// NOTE(@Janberk): In-memory mock seed. `publishedDate` is always ISO 8601 UTC (`…Z`);
+// NOTE(@Janberk): In-memory mock seed. `publishedDate` is always ISO 8601 UTC (`…Z`), as in the case study examples.
 const SEED_ARTICLE_ROWS: readonly ArticleDtoSeed[] = [
   {
     id: '0',
@@ -113,7 +115,7 @@ function newId(prefix: string): string {
 
 const ALLOWED_CATEGORY = new Set<string>(ARTICLE_CATEGORY_OPTIONS);
 
-/** Drops unknown category values so the mock store never holds invalid enums. */
+// NOTE(@Janberk): Drops unknown category values so the mock store never holds invalid enums.
 function normalizedCategory(
   value: ArticleCategory | undefined,
 ): ArticleCategory | undefined {
@@ -123,34 +125,126 @@ function normalizedCategory(
   return ALLOWED_CATEGORY.has(value) ? value : undefined;
 }
 
+/* Local storage snapshot (mock persistence) */
+const STORAGE_KEY = 'clinked-blog-mock-v1';
+
+type MockStorageSnapshotV1 = {
+  readonly version: 1;
+  readonly articles: ArticleDto[];
+  readonly commentsByArticleId: Record<string, CommentDto[]>;
+};
+
+function defaultArticleRows(): ArticleDto[] {
+  return SEED_ARTICLE_ROWS.map((row) => ({
+    ...row,
+    commentCount: 0,
+  }));
+}
+
+function tryReadSnapshot(): MockStorageSnapshotV1 | null {
+  try {
+    if (typeof localStorage === 'undefined') {
+      return null;
+    }
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw == null || raw === '') {
+      return null;
+    }
+    const parsed: unknown = JSON.parse(raw);
+    if (
+      typeof parsed !== 'object' ||
+      parsed === null ||
+      (parsed as MockStorageSnapshotV1).version !== 1 ||
+      !Array.isArray((parsed as MockStorageSnapshotV1).articles) ||
+      typeof (parsed as MockStorageSnapshotV1).commentsByArticleId !==
+        'object' ||
+      (parsed as MockStorageSnapshotV1).commentsByArticleId === null
+    ) {
+      return null;
+    }
+    return parsed as MockStorageSnapshotV1;
+  } catch {
+    return null;
+  }
+}
+
+function tryPersistSnapshot(
+  articles: readonly ArticleDto[],
+  commentsByArticleId: ReadonlyMap<string, CommentDto[]>,
+): void {
+  try {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+    const commentsRecord: Record<string, CommentDto[]> = {};
+    for (const [articleId, rows] of commentsByArticleId.entries()) {
+      commentsRecord[articleId] = rows.map((c) => ({ ...c }));
+    }
+    const snapshot: MockStorageSnapshotV1 = {
+      version: 1,
+      articles: articles.map((row) => ({
+        ...row,
+        commentCount: 0,
+      })),
+      commentsByArticleId: commentsRecord,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+  } catch {
+    // NOTE(@Janberk): Quota / private mode — stay in memory only, same as read failure.
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class ArticleApiService {
-  /** Emits `articleId` after comments map mutates so UIs can re-query `getArticleById` / `getComments`. */
+  // NOTE(@Janberk): Emit articleId after add/remove comment so detail + list can refetch and show the new commentCount.
   readonly #commentsChangedForArticle = new Subject<string>();
   readonly commentsChangedForArticle$ =
     this.#commentsChangedForArticle.asObservable();
 
-  readonly #commentsByArticleId: Map<string, CommentDto[]> =
-    seedCommentsByArticle();
+  readonly #commentsByArticleId: Map<string, CommentDto[]>;
 
-  /**
-   * `commentCount` on stored DTOs is a placeholder;
-   *  use {@link #liveArticleDto} when mapping out.
-   */
-  readonly #articleDtos: ArticleDto[] = SEED_ARTICLE_ROWS.map((row) => ({
-    ...row,
-    commentCount: 0,
-  }));
-  /** Note(@Janberk): Live comment count for an article. */
+  // NOTE(@Janberk): commentCount on stored DTOs is not authoritative; #liveArticleDto fills it from #commentsByArticleId.
+  readonly #articleDtos: ArticleDto[];
+
+  // NOTE(@Janberk): Hydrate from localStorage if present; otherwise seed rows + default comments map.
+  constructor() {
+    const snapshot = tryReadSnapshot();
+    if (snapshot) {
+      this.#articleDtos = snapshot.articles.map((row) => ({
+        ...row,
+        commentCount: 0,
+      }));
+      this.#commentsByArticleId = new Map(
+        Object.entries(snapshot.commentsByArticleId).map(([k, rows]) => [
+          k,
+          rows.map((c) => ({ ...c })),
+        ]),
+      );
+    } else {
+      this.#articleDtos = defaultArticleRows();
+      this.#commentsByArticleId = seedCommentsByArticle();
+    }
+    for (const row of this.#articleDtos) {
+      if (!this.#commentsByArticleId.has(row.id)) {
+        this.#commentsByArticleId.set(row.id, []);
+      }
+    }
+  }
+  // NOTE(@Janberk): Live comment count for an article.
   #commentCountFor(articleId: string): number {
     return this.#commentsByArticleId.get(articleId)?.length ?? 0;
   }
-  // NOTE(@Janberk): Map of comments by article ID.
+  // NOTE(@Janberk): Article row with `commentCount` filled from live `#commentsByArticleId` (not the stale field on the stored DTO).
   #liveArticleDto(dto: ArticleDto): ArticleDto {
     return {
       ...dto,
       commentCount: this.#commentCountFor(dto.id),
     };
+  }
+
+  // NOTE(@Janberk): Persist full mock state after any write (create article / add comment).
+  #persist(): void {
+    tryPersistSnapshot(this.#articleDtos, this.#commentsByArticleId);
   }
 
   // NOTE(@Janberk): Get all articles.
@@ -167,15 +261,14 @@ export class ArticleApiService {
 
   // NOTE(@Janberk): Get an article by ID.
   getArticleById(id: string): Observable<Article | null> {
+    const nid = id.trim();
     return defer(() => {
-      const dto = this.#articleDtos.find((row) => row.id === id);
+      const dto = this.#articleDtos.find((row) => row.id === nid);
       return of(dto ? mapArticleFromDto(this.#liveArticleDto(dto)) : null);
     }).pipe(delay(MOCK_LATENCY_MS));
   }
 
-  /**
-   * Persists a new article. Owns `publishedDate` (ISO UTC) and `id`; callers must not send them.
-   */
+  // NOTE(@Janberk): Creates id + publishedDate (ISO 8601 UTC) here — callers must not send them (case study rule).
   createArticle(payload: CreateArticlePayload): Observable<Article> {
     return defer(() => {
       const id = newId('article');
@@ -190,6 +283,7 @@ export class ArticleApiService {
 
       this.#articleDtos.push(dto);
       this.#commentsByArticleId.set(id, []);
+      this.#persist();
 
       return of(mapArticleFromDto(this.#liveArticleDto(dto)));
     }).pipe(delay(MOCK_LATENCY_MS));
@@ -197,18 +291,18 @@ export class ArticleApiService {
 
   // NOTE(@Janberk): Get comments for an article.
   getComments(articleId: string): Observable<Comment[]> {
+    const aid = articleId.trim();
     return defer(() => {
-      const rows = this.#commentsByArticleId.get(articleId) ?? [];
+      const rows = this.#commentsByArticleId.get(aid) ?? [];
       return of(mapCommentsFromDto(rows));
     }).pipe(delay(MOCK_LATENCY_MS));
   }
 
   // NOTE(@Janberk): Add a new comment to an article.
   addComment(articleId: string, content: string): Observable<Comment> {
+    const aid = articleId.trim();
     return defer(() => {
-      const articleIndex = this.#articleDtos.findIndex(
-        (row) => row.id === articleId,
-      );
+      const articleIndex = this.#articleDtos.findIndex((row) => row.id === aid);
       if (articleIndex === -1) {
         return throwError(
           () => new Error(`ArticleApiService.addComment: unknown articleId`),
@@ -216,13 +310,14 @@ export class ArticleApiService {
       }
       const dto: CommentDto = {
         id: newId('comment'),
-        articleId,
+        articleId: aid,
         content,
         createdAt: new Date().toISOString(),
       };
-      const existing = this.#commentsByArticleId.get(articleId) ?? [];
-      this.#commentsByArticleId.set(articleId, [...existing, dto]);
-      this.#commentsChangedForArticle.next(articleId);
+      const existing = this.#commentsByArticleId.get(aid) ?? [];
+      this.#commentsByArticleId.set(aid, [...existing, dto]);
+      this.#persist();
+      this.#commentsChangedForArticle.next(aid);
 
       return of(mapCommentFromDto(dto));
     }).pipe(delay(MOCK_LATENCY_MS));

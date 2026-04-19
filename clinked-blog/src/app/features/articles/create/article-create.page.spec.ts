@@ -16,13 +16,12 @@ const emptyState = {} as RouterStateSnapshot;
 const emptyNextState = {} as RouterStateSnapshot;
 
 function runDeactivateGuard(cmp: ArticleCreatePage): boolean {
-  const result = articleCreateCanDeactivateGuard(
+  return articleCreateCanDeactivateGuard(
     cmp,
     emptyRoute,
     emptyState,
     emptyNextState,
-  );
-  return result === true;
+  ) as boolean;
 }
 
 describe('ArticleCreatePage', () => {
@@ -117,6 +116,8 @@ describe('ArticleCreatePage', () => {
       fixture.detectChanges();
       const cmp = fixture.componentInstance;
       cmp.form.controls.title.setValue('x');
+      cmp.form.markAsDirty();
+      fixture.detectChanges();
       spyOn(window, 'confirm').and.returnValue(false);
 
       expect(runDeactivateGuard(cmp)).toBe(false);
@@ -126,6 +127,8 @@ describe('ArticleCreatePage', () => {
       fixture.detectChanges();
       const cmp = fixture.componentInstance;
       cmp.form.controls.title.setValue('x');
+      cmp.form.markAsDirty();
+      fixture.detectChanges();
       spyOn(window, 'confirm').and.returnValue(true);
 
       expect(runDeactivateGuard(cmp)).toBe(true);

@@ -1,3 +1,4 @@
+/* Core Imports */
 import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -6,18 +7,24 @@ import {
   inject,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+/* RxJS Imports */
 import { debounceTime, distinctUntilChanged, map, startWith } from 'rxjs';
-
+/* API Imports */
 import { ArticleApiService } from '../../../core/api/services/article-api.service';
+/* Model Imports */
 import type { ArticleListItem } from '../../../shared/models/article-list-item.model';
+/* Forms Imports */
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+/* Router Imports */
+import { RouterLink } from '@angular/router';
 
-type ArticlesLoadState =
-  | { readonly status: 'pending'; readonly data: readonly ArticleListItem[] }
-  | { readonly status: 'success'; readonly data: readonly ArticleListItem[] };
+/* Result UI State */
+type ArticleListResultState =
+  | { readonly resultKind: 'pending'; readonly data: readonly ArticleListItem[] }
+  | { readonly resultKind: 'success'; readonly data: readonly ArticleListItem[] };
 
-type ListUiState = 'loading' | 'empty' | 'no-results' | 'ready';
+/* UI State */
+type ArticleListUiState = 'loading' | 'empty' | 'no-results' | 'ready';
 
 @Component({
   selector: 'app-article-list',
@@ -35,21 +42,21 @@ export class ArticleListPage {
   private readonly articlesResult = toSignal(
     this.articleApi.getArticles().pipe(
       map(
-        (data): ArticlesLoadState => ({
-          status: 'success',
+        (data): ArticleListResultState => ({
+          resultKind: 'success',
           data,
         }),
       ),
-      startWith<ArticlesLoadState>({
-        status: 'pending',
+      startWith<ArticleListResultState>({
+        resultKind: 'pending',
         data: [],
       }),
     ),
     {
       initialValue: {
-        status: 'pending',
+        resultKind: 'pending',
         data: [],
-      } satisfies ArticlesLoadState,
+      } satisfies ArticleListResultState,
     },
   );
 
@@ -71,10 +78,10 @@ export class ArticleListPage {
     return items.filter((a) => a.title.toLowerCase().includes(q));
   });
 
-  readonly uiState = computed<ListUiState>(() => {
-    const { status, data } = this.articlesResult();
+  readonly listState = computed<ArticleListUiState>(() => {
+    const { resultKind, data } = this.articlesResult();
     const filtered = this.filteredArticles();
-    if (status === 'pending') {
+    if (resultKind === 'pending') {
       return 'loading';
     }
     if (data.length === 0) {
