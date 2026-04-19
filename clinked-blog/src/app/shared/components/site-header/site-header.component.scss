@@ -1,0 +1,79 @@
+@use "../../../../styles/tokens" as tokens;
+
+.site-header {
+  background: tokens.$color-navy;
+  max-width: min(95vw, 1200px);
+  margin: auto;
+  border-radius: tokens.$border-radius-card;
+  position: sticky;
+  top: tokens.$spacing-makeuparea;
+  z-index: 100;
+}
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: auto;
+  padding: tokens.$space-3 0;
+  padding-inline: clamp(tokens.$space-4, 4vw, tokens.$space-6);
+  gap: tokens.$space-6;
+}
+.site-header__brand {
+  flex-shrink: 0;
+  color: #fff;
+  text-decoration: none;
+  transition: color tokens.$motion-duration-fast tokens.$ease-out-expo;
+}
+.site-header__brand:hover {
+  color: tokens.$color-clinked-green;
+}
+.site-header__brand-text {
+  font-family: Poppins, system-ui, sans-serif;
+  font-size: tokens.$font-size-lg;
+  font-weight: tokens.$font-weight-semibold;
+  letter-spacing: tokens.$letter-spacing-display;
+}
+.site-header__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: tokens.$space-4;
+}
+.site-header__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: tokens.$space-2 tokens.$space-6;
+  font-size: tokens.$font-size-caption;
+  font-weight: tokens.$font-weight-semibold;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color tokens.$motion-duration-fast tokens.$ease-out-expo;
+}
+.site-header__link--ghost {
+  color: tokens.$color-surface;
+  transition: color tokens.$motion-duration-fast tokens.$ease-out-expo;
+}
+.site-header__link--ghost:hover {
+  color: tokens.$color-clinked-green;
+  transform: translateY(-2px);
+}
+.site-header__link--cta {
+  color: tokens.$color-navy;
+  background: tokens.$color-lime;
+  border-radius: tokens.$border-radius-pill-primary;
+}
+.site-header__link--cta:hover {
+  box-shadow: 0 6px 18px rgb(163 226 32 / 38%);
+  transform: translateY(-2px);
+}
+.site-header__link--cta:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-header__link {
+    transition-duration: 0.01ms !important;
+  }
+}

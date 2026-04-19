@@ -1,6 +1,16 @@
 /* Core Imports */
 import { DatePipe } from '@angular/common';
 import {
+  animate,
+  keyframes,
+  query,
+  sequence,
+  stagger,
+  style,
+  transition,
+  trigger,
+} from '@angular/animations';
+import {
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -17,28 +27,84 @@ import type { ArticleListItem } from '../../../shared/models/article-list-item.m
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 /* Router Imports */
 import { RouterLink } from '@angular/router';
-
 /* Result UI State */
 type ArticleListResultState =
-  | { readonly resultKind: 'pending'; readonly data: readonly ArticleListItem[] }
-  | { readonly resultKind: 'success'; readonly data: readonly ArticleListItem[] };
-
+  | {
+      readonly resultKind: 'pending';
+      readonly data: readonly ArticleListItem[];
+    }
+  | {
+      readonly resultKind: 'success';
+      readonly data: readonly ArticleListItem[];
+    };
 /* UI State */
 type ArticleListUiState = 'loading' | 'empty' | 'no-results' | 'ready';
-
 @Component({
   selector: 'app-article-list',
   imports: [DatePipe, ReactiveFormsModule, RouterLink],
   templateUrl: './article-list.page.html',
   styleUrl: './article-list.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    trigger('articleListContentIn', [
+      transition(':enter', [
+        sequence([
+          query(
+            ':scope > .list-grid > li',
+            [style({ opacity: 0, transform: 'translateY(48px)' })],
+            { optional: true },
+          ),
+          query(
+            ':scope > .list-container__header > *',
+            [
+              style({ opacity: 0, transform: 'translateY(20px)' }),
+              stagger(
+                88,
+                animate(
+                  '0.52s cubic-bezier(0.16, 1, 0.3, 1)',
+                  style({ opacity: 1, transform: 'translateY(0)' }),
+                ),
+              ),
+            ],
+            { optional: true },
+          ),
+          query(
+            ':scope > .list-grid > li',
+            [
+              stagger(
+                78,
+                animate(
+                  '0.72s cubic-bezier(0.16, 1, 0.3, 1)',
+                  keyframes([
+                    style({
+                      offset: 0,
+                      opacity: 0,
+                      transform: 'translateY(48px)',
+                    }),
+                    style({
+                      offset: 0.5,
+                      opacity: 1,
+                      transform: 'translateY(12px)',
+                    }),
+                    style({
+                      offset: 1,
+                      opacity: 1,
+                      transform: 'translateY(0)',
+                    }),
+                  ]),
+                ),
+              ),
+            ],
+            { optional: true },
+          ),
+        ]),
+      ]),
+    ]),
+  ],
 })
 export class ArticleListPage {
   private readonly articleApi = inject(ArticleApiService);
-
-  /** Bound in template — debounced via Rx → signal. */
   readonly searchControl = new FormControl('', { nonNullable: true });
-
   private readonly articlesResult = toSignal(
     this.articleApi.getArticles().pipe(
       map(
@@ -59,7 +125,6 @@ export class ArticleListPage {
       } satisfies ArticleListResultState,
     },
   );
-
   private readonly searchTerm = toSignal(
     this.searchControl.valueChanges.pipe(
       debounceTime(350),
@@ -68,7 +133,6 @@ export class ArticleListPage {
     ),
     { initialValue: '' },
   );
-
   readonly filteredArticles = computed(() => {
     const items = this.articlesResult().data;
     const q = this.searchTerm().trim().toLowerCase();
@@ -77,7 +141,6 @@ export class ArticleListPage {
     }
     return items.filter((a) => a.title.toLowerCase().includes(q));
   });
-
   readonly listState = computed<ArticleListUiState>(() => {
     const { resultKind, data } = this.articlesResult();
     const filtered = this.filteredArticles();

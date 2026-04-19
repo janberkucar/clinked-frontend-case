@@ -32,6 +32,7 @@ import {
   selector: 'app-article-create',
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './article-create.page.html',
+  styleUrl: './article-create.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleCreatePage {

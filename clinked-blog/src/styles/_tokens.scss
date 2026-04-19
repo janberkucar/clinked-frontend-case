@@ -1,25 +1,70 @@
-// Font Tokens
-$font-size-base: 16px;
-$font-size-sm: 14px;
-$font-size-lg: 18px;
-$font-size-xl: 20px;
-$font-size-2xl: 24px;
-$font-size-3xl: 30px;
-$font-size-4xl: 36px;
-$font-size-5xl: 48px;
+// Spacing
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 20px;
+$space-6: 24px;
+$space-8: 32px;
+$space-10: 40px;
+$space-12: 48px;
+$space-16: 64px;
+$space-20: 80px;
+$spacing-xs: $space-2;
+$spacing-sm: $space-4;
+$spacing-md: $space-6;
+$spacing-lg: $space-8;
+$spacing-makeuparea: $spacing-xs;
+
+// Typography
+$font-size-body: 1.25rem; // 20px
+$font-size-h1: 3rem; // 48px
+$font-size-h2: 2rem; // 32px
+$font-size-caption: 1rem; // 16px
+
+$font-size-base: $font-size-body;
+$font-size-sm: $font-size-caption;
+$font-size-lg: 1.325rem;
+$font-size-xl: $font-size-h2;
+$font-size-2xl: 2.25rem;
+$font-size-3xl: $font-size-h1;
+$font-size-4xl: 3.5rem;
+$font-size-5xl: 4rem;
+
 $font-weight-normal: 400;
 $font-weight-medium: 500;
 $font-weight-semibold: 600;
 $font-weight-bold: 700;
-// Letter Spacing Tokens
+
 $letter-spacing-display: -0.96px;
-// Border Radius Tokens
+
+// Radii
+$border-radius-card: 16px;
+$border-radius-pill-primary: 39px;
+$border-radius-pill-secondary: 35px;
 $border-radius-sm: 4px;
 $border-radius-md: 8px;
 $border-radius-lg: 12px;
-$border-radius-xl: 16px;
+$border-radius-xl: $border-radius-card;
 $border-radius-2xl: 24px;
 $border-radius-3xl: 32px;
 $border-radius-full: 9999px;
-// Spacing Tokens
-$spacing-lg: 4rem;
+
+// Colors
+$color-navy: #101d42;
+$color-lime: #a3e220;
+$color-text-secondary: #d5d7da;
+$color-link: #2a303c;
+$color-surface: #ffffff;
+$color-border: #d5d7da;
+
+// Accent Colors
+$color-link-hover: #2563eb;
+$color-clinked-black: $color-navy;
+$color-clinked-green: $color-lime;
+$color-text-muted: $color-text-secondary;
+$color-surface-muted: #eceef2;
+
+$motion-duration-fast: 0.2s;
+$motion-duration: 0.28s;
+$ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);

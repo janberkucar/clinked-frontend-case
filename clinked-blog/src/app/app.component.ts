@@ -1,15 +1,18 @@
 /* Core Imports */
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 /* Router Imports */
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
+import { ClinkedMarketingBlocksComponent } from './shared/components/marketing/clinked-marketing-blocks.component';
+import { SiteHeaderComponent } from './shared/components/site-header/site-header.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterLink, RouterOutlet],
+  imports: [
+    RouterOutlet,
+    SiteHeaderComponent,
+    ClinkedMarketingBlocksComponent,
+  ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent {
-  readonly appName = 'Clinked blog';
-}
+export class AppComponent {}

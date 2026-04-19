@@ -1,0 +1,247 @@
+@use "../../../../styles/tokens" as tokens;
+
+// NOTE(@Janberk): One subtle enter on ready content only — loading/error stay static (see prefers-reduced-motion in styles.scss).
+.article-detail-page__ready {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  animation: article-detail-ready-in tokens.$motion-duration
+    tokens.$ease-out-expo both;
+}
+
+.article-detail-page__ready app-comment-list {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: min(100%, 720px);
+  margin-inline: auto;
+  margin-top: clamp(tokens.$space-8, 4vw, tokens.$space-12);
+  padding-inline: clamp(tokens.$space-4, 4vw, tokens.$space-6);
+}
+
+@keyframes article-detail-ready-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.article-detail__main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+
+.article-detail__hero {
+  padding-block: clamp(tokens.$space-8, 5vw, tokens.$space-16)
+    clamp(tokens.$space-6, 4vw, tokens.$space-12);
+  background:
+    radial-gradient(
+      900px 380px at 100% 0%,
+      rgb(37 99 235 / 8%),
+      transparent 60%
+    ),
+    radial-gradient(
+      700px 340px at 0% 30%,
+      rgb(163 226 32 / 14%),
+      transparent 55%
+    ),
+    tokens.$color-surface;
+}
+
+.article-detail__hero-inner {
+  width: min(100%, 880px);
+  margin-inline: auto;
+  padding-inline: clamp(tokens.$space-4, 4vw, tokens.$space-6);
+}
+
+.article-detail__crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: tokens.$space-2;
+  margin-bottom: tokens.$space-8;
+  font-size: tokens.$font-size-caption;
+  font-weight: tokens.$font-weight-semibold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: tokens.$color-text-secondary;
+}
+
+.article-detail__crumbs a {
+  color: tokens.$color-text-secondary;
+  text-decoration: none;
+  transition: color tokens.$motion-duration-fast tokens.$ease-out-expo;
+}
+
+.article-detail__crumbs a:hover {
+  color: tokens.$color-link-hover;
+}
+
+.article-detail__crumb-sep {
+  opacity: 0.55;
+}
+
+.article-detail__crumb-current {
+  max-width: min(40ch, 100%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: tokens.$color-navy;
+}
+
+.article-detail__eyebrow {
+  margin: 0 0 tokens.$space-3;
+  font-size: tokens.$font-size-caption;
+  font-weight: tokens.$font-weight-bold;
+  color: tokens.$color-lime;
+}
+
+.article-detail__title {
+  margin: 0 0 tokens.$space-5;
+  font-size: clamp(1.875rem, 4.2vw, 3.25rem);
+  font-weight: tokens.$font-weight-bold;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: tokens.$color-navy;
+}
+
+.article-detail__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: tokens.$space-6;
+  padding-bottom: tokens.$space-8;
+  margin-bottom: tokens.$space-10;
+  border-bottom: 1px solid tokens.$color-border;
+}
+
+.article-detail__author {
+  display: flex;
+  align-items: center;
+  gap: tokens.$space-4;
+}
+
+.article-detail__avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: tokens.$border-radius-full;
+  font-size: tokens.$font-size-caption;
+  font-weight: tokens.$font-weight-bold;
+  color: tokens.$color-navy;
+  background: tokens.$color-lime;
+}
+
+.article-detail__author-name {
+  margin: 0;
+  font-size: tokens.$font-size-sm;
+  font-weight: tokens.$font-weight-bold;
+  color: tokens.$color-navy;
+}
+
+.article-detail__author-role {
+  margin: 0;
+  font-size: tokens.$font-size-caption;
+  color: tokens.$color-text-secondary;
+}
+
+.article-detail__meta-stats {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: tokens.$space-3;
+  font-size: tokens.$font-size-caption;
+  font-weight: tokens.$font-weight-medium;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: tokens.$color-text-secondary;
+}
+
+.article-detail__meta-stats strong {
+  font-weight: tokens.$font-weight-bold;
+  color: tokens.$color-navy;
+}
+
+.article-detail__meta-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+.article-detail__cover {
+  position: relative;
+  overflow: hidden;
+  border-radius: tokens.$border-radius-card;
+  aspect-ratio: 21 / 9;
+}
+
+.article-detail__cover-placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: tokens.$color-surface-muted;
+}
+
+.article-detail__body-wrap {
+  margin-bottom: 8rem;
+}
+
+.article-detail__body-inner {
+  width: min(100%, 720px);
+  margin-inline: auto;
+  padding-inline: clamp(tokens.$space-2, 2vw, tokens.$space-4);
+}
+
+.article-detail__prose {
+  max-width: 100%;
+  font-size: clamp(1.0625rem, 1.5vw, 1.125rem);
+  line-height: 1.75;
+  color: tokens.$color-link;
+}
+
+.article-detail__prose p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.article-detail__actions {
+  margin-top: tokens.$space-10;
+}
+
+.article-detail__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: tokens.$space-3 tokens.$space-6;
+  border: 0;
+  border-radius: tokens.$border-radius-pill-primary;
+  font-size: tokens.$font-size-caption;
+  font-weight: tokens.$font-weight-semibold;
+  color: tokens.$color-navy;
+  text-decoration: none;
+  background: tokens.$color-lime;
+  cursor: pointer;
+  transition: opacity tokens.$motion-duration-fast tokens.$ease-out-expo;
+}
+
+.article-detail__cta:hover {
+  opacity: 0.92;
+}
+
+.article-detail__cta:active {
+  opacity: 0.85;
+}

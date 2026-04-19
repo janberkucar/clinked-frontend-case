@@ -1,0 +1,38 @@
+@use "../../../shared/styles/panel.module";
+@use "../../../../styles/tokens" as tokens;
+
+:host {
+  display: block;
+  width: 100%;
+  animation: comment-panel-host-in tokens.$motion-duration tokens.$ease-out-expo
+    both;
+}
+
+@keyframes comment-panel-host-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    animation: none !important;
+  }
+
+  .comment-panel__item {
+    animation: none !important;
+  }
+
+  .comment-panel__closeCmds,
+  .comment-panel__form__cta,
+  .comment-panel__form__textarea,
+  .comment-panel__item {
+    transition-duration: 0.01ms !important;
+  }
+}

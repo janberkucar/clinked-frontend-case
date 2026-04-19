@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
@@ -25,6 +26,7 @@ describe('ArticleListPage', () => {
     await TestBed.configureTestingModule({
       imports: [ArticleListPage],
       providers: [
+        provideAnimationsAsync(),
         provideRouter([]),
         { provide: ArticleApiService, useValue: { getArticles: getArticlesSpy } },
       ],

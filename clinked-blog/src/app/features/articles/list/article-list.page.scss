@@ -1,1 +1,17 @@
 @use "../../../shared/styles/list.module";
+@use "../../../../styles/tokens" as tokens;
+.article-list__content {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-10;
+}
+.article-list__makeup {
+  font-size: tokens.$font-size-caption;
+  font-weight: tokens.$font-weight-semibold;
+  color: tokens.$color-lime;
+}
+.article-list__title {
+  font-size: tokens.$font-size-h1;
+  font-weight: tokens.$font-weight-semibold;
+  color: tokens.$color-navy;
+}

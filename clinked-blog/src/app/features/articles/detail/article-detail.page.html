@@ -1,40 +1,75 @@
 <section
   class="detail-container article-detail-page"
-  aria-labelledby="article-detail-container"
-  >
-  @switch (detailState().kind) {
-    @case ('loading') {
-      <p class="status-role__loading" role="status">Loading article…</p>
-    }
-    @case ('notFound') {
-      <p class="status-role__notfound" role="status">Article not found</p>
-    }
-    @case ('error') {
-      <p class="alert-role__error" role="alert">{{ errorMessage() }}</p>
-    }
-    @case ('ready') {
-      @if (article(); as articleSlug) {
-        <article>
-          <h1>{{ articleSlug.title }}</h1>
-          <p>
-            Published {{ articleSlug.publishedDate | date: 'medium' }} ·
-            {{ articleSlug.commentCount }} comments
+  aria-labelledby="article-detail-heading"
+>
+  @switch (detailState().kind) { @case ('loading') {
+  <p class="status-role__loading" role="status">Loading article…</p>
+  } @case ('notFound') {
+  <p class="status-role__notfound" role="status">Article not found</p>
+  } @case ('error') {
+  <p class="alert-role__error" role="alert">{{ errorMessage() }}</p>
+  } @case ('ready') { @if (article(); as articleSlug) {
+  <div class="article-detail-page__ready">
+    <main class="article-detail__main" aria-labelledby="article-detail-heading">
+      <header class="article-detail__hero">
+        <div class="article-detail__hero-inner">
+          <nav class="article-detail__crumbs" aria-label="Breadcrumb">
+            <a routerLink="/">Articles</a>
+            <span class="article-detail__crumb-sep" aria-hidden="true">/</span>
+            <span class="article-detail__crumb-current"
+              >{{ articleSlug.title }}</span
+            >
+          </nav>
+          <p class="article-detail__eyebrow">
+            @if (articleSlug.category) { {{ articleSlug.category }} } @else {
+            Clinked blog }
           </p>
-          @if (articleSlug.category) {
-            <p>Category: {{ articleSlug.category }}</p>
-          }
-          <p [innerText]="articleSlug.content"></p>
-          <button
-            type="button"
-            [routerLink]="[{ outlets: { side: ['comments'] } }]"
-            queryParamsHandling="preserve"
-            aria-label="Open comments panel"
-          >
-            Open comments panel
-          </button>
-        </article>
-      }
-    }
-  }
-<router-outlet name="side"></router-outlet>
+          <h1 id="article-detail-heading" class="article-detail__title">
+            {{ articleSlug.title }}
+          </h1>
+          <div class="article-detail__meta">
+            <div class="article-detail__author">
+              <span class="article-detail__avatar" aria-hidden="true">CT</span>
+              <div>
+                <p class="article-detail__author-name">Clinked Team</p>
+                <p class="article-detail__author-role">Editorial</p>
+              </div>
+            </div>
+            <div class="article-detail__meta-stats">
+              <time [attr.datetime]="articleSlug.publishedDate"
+                >{{ articleSlug.publishedDate | date: 'd MMM y' }}</time
+              >
+              <span class="article-detail__meta-dot" aria-hidden="true"></span>
+              <span
+                ><strong>{{ articleSlug.commentCount }}</strong> comments</span
+              >
+            </div>
+          </div>
+          <div class="article-detail__cover" aria-hidden="true">
+            <span class="article-detail__cover-placeholder"></span>
+          </div>
+        </div>
+      </header>
+      <div class="article-detail__body-wrap">
+        <div class="article-detail__body-inner">
+          <article class="article-detail__prose">
+            <p [innerText]="articleSlug.content"></p>
+          </article>
+          <div class="article-detail__actions">
+            <button
+              type="button"
+              class="article-detail__cta"
+              [routerLink]="[{ outlets: { side: ['comments'] } }]"
+              queryParamsHandling="preserve"
+              aria-label="Open comments panel"
+            >
+              Open comments panel
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <router-outlet name="side"></router-outlet>
+  </div>
+  } } }
 </section>

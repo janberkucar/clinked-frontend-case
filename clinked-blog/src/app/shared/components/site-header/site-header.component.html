@@ -1,0 +1,22 @@
+<header class="site-header">
+  <div class="site-header__inner">
+    <a routerLink="/" class="site-header__brand" aria-label="Clinked blog">
+      <span class="site-header__brand-text">clinked.com</span>
+    </a>
+    <nav class="site-header__nav" aria-label="Primary">
+      <a
+        routerLink="/"
+        routerLinkActive="site-header__link--active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="site-header__link site-header__link--ghost"
+        >Articles</a
+      >
+      <a
+        routerLink="/create"
+        routerLinkActive="site-header__link--active"
+        class="site-header__link site-header__link--cta"
+        >Create article</a
+      >
+    </nav>
+  </div>
+</header>

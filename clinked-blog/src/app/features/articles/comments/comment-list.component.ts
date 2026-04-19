@@ -36,7 +36,6 @@ import {
 import { ArticleApiService } from '../../../core/api/services/article-api.service';
 /* Model Imports */
 import type { Comment } from '../../../shared/models/comment.model';
-
 type CommentsState =
   | { readonly kind: 'noArticle' }
   | { readonly kind: 'articleNotFound' }
@@ -44,14 +43,12 @@ type CommentsState =
   | { readonly kind: 'empty' }
   | { readonly kind: 'ready'; readonly comments: readonly Comment[] }
   | { readonly kind: 'error'; readonly message: string };
-
 function articleIdFromRouterUrl(url: string): string | null {
   const path = url.startsWith('/') ? url : `/${url}`;
   const match = /\/article\/([^/?#(;]+)/.exec(path);
   const segment = match?.[1]?.trim();
   return segment ? decodeURIComponent(segment) : null;
 }
-
 // NOTE(@Janberk): Named-outlet children do not always inherit `id` on `paramMap`; walk ancestors then the full router snapshot (then URL).
 function articleIdFromActivatedRouteTree(route: ActivatedRoute): string | null {
   let r: ActivatedRoute | null = route;
@@ -64,7 +61,6 @@ function articleIdFromActivatedRouteTree(route: ActivatedRoute): string | null {
   }
   return null;
 }
-
 function firstArticleIdInSnapshotTree(
   root: ActivatedRouteSnapshot,
 ): string | null {
@@ -80,7 +76,6 @@ function firstArticleIdInSnapshotTree(
   }
   return null;
 }
-
 function pickArticleId(route: ActivatedRoute, router: Router): string | null {
   const raw =
     articleIdFromActivatedRouteTree(route) ??
@@ -91,7 +86,6 @@ function pickArticleId(route: ActivatedRoute, router: Router): string | null {
   const trimmed = raw?.trim();
   return trimmed === '' || trimmed === undefined ? null : trimmed;
 }
-
 @Component({
   selector: 'app-comment-list',
   imports: [ReactiveFormsModule, DatePipe],
@@ -208,7 +202,6 @@ export class CommentListComponent {
       this.contentControl.markAsTouched();
       return;
     }
-
     this.commentPostError.set(null);
     this.submitting.set(true);
     this.articleApi
@@ -233,14 +226,12 @@ export class CommentListComponent {
         },
       });
   }
-
   attemptClose(): void {
     if (!this.confirmDiscardPendingComment()) {
       return;
     }
     this.closePanel();
   }
-
   private confirmDiscardPendingComment(): boolean {
     const raw = this.contentControl.value.trim();
     if (!this.contentControl.dirty || raw.length === 0) {
@@ -248,7 +239,6 @@ export class CommentListComponent {
     }
     return window.confirm('Discard this comment? Your text will not be saved.');
   }
-
   closePanel(): void {
     const cmds = this.closeSideOutletCommands();
     if (cmds) {
@@ -262,12 +252,10 @@ export class CommentListComponent {
       queryParamsHandling: 'preserve',
     });
   }
-
   @HostListener('document:keydown.escape')
   onEscape(): void {
     this.attemptClose();
   }
-
   trackById(_index: number, item: Comment): string {
     return item.id;
   }

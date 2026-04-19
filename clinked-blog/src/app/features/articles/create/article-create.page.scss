@@ -1,0 +1,18 @@
+@use "../../../../styles/tokens" as tokens;
+
+.article-create-page {
+  animation: article-create-in tokens.$motion-duration tokens.$ease-out-expo
+    both;
+}
+
+@keyframes article-create-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

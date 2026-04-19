@@ -1,6 +1,6 @@
 <section
   class="comment-panel-container"
-  aria-labelledby="comment-panel-container"
+  aria-labelledby="article-comment-panel-heading"
 >
   <header class="comment-panel__header">
     <h2 id="article-comment-panel-heading" class="comment-panel__title">
@@ -36,7 +36,11 @@
     @case ("ready") {
       <ul class="comment-panel__list" role="list">
         @for (comment of readyComments()!; track trackById($index, comment)) {
-          <li class="comment-panel__item" role="listitem">
+          <li
+            class="comment-panel__item"
+            role="listitem"
+            [style.--panel-stagger-ms]="$index * 60 + 'ms'"
+          >
             <time [attr.datetime]="comment.createdAt">{{
               comment.createdAt | date: "medium"
             }}</time>

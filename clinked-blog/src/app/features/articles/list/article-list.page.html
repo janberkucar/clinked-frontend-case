@@ -1,48 +1,71 @@
 <section
   class="list-container article-list-page"
-  aria-labelledby="article-list-container"
+  [attr.aria-busy]="listState() === 'loading'"
+  [attr.aria-labelledby]="listState() !== 'loading' ? 'article-list-heading' : null"
+  [attr.aria-label]="listState() === 'loading' ? 'Article list' : null"
 >
-  <header class="list-header">
-    <div>
-      <h1 id="article-list-heading" class="article-list__title">Articles</h1>
-    </div>
-    <div class="article-list__search">
-      <label class="visually-hidden" for="article-search"
-        >Search by title</label
+  @if (listState() !== 'loading') {
+  <div class="article-list__content" @articleListContentIn>
+    <div class="list-container__header">
+      <h5 class="article-list__makeup">
+        Task Assignment for Frontend Developer position at Clinked
+      </h5>
+      <h1 id="article-list-heading" class="article-list__title">
+        A Study Case Blog with Angular
+      </h1>
+      <form
+        class="list-search"
+        role="search"
+        (ngSubmit)="$event.preventDefault()"
       >
-      <input
-        id="article-search"
-        class="article-list__search-input"
-        type="search"
-        placeholder="Search by title…"
-        [formControl]="searchControl"
-        autocomplete="off"
-      />
+        <span class="list-search__icon" aria-hidden="true">⌕</span>
+        <label class="visually-hidden" for="article-search"></label>
+        <input
+          id="article-search"
+          class="list-search__input"
+          type="search"
+          placeholder="Search by title…"
+          [formControl]="searchControl"
+          autocomplete="off"
+          aria-label="Search articles by title"
+        />
+        <button type="button" class="list-search__btn">Search</button>
+      </form>
     </div>
-  </header>
-  @if (listState() === 'loading') {
-  <p class="status-role__loading" role="status">Loading articles…</p>
-  } @else if (listState() === 'empty') {
-  <p class="status-role__empty" role="status">No articles available</p>
-  } @else if (listState() === 'no-results') {
-  <p class="status-role__notFound" role="status">No matching articles</p>
-  } @else {
-  <ul class="list-grid">
-    @for (article of filteredArticles(); track trackById($index, article)) {
-    <li>
-      <a class="list-card" [routerLink]="['/article', article.id]">
-        <h2 class="list-card__title">{{ article.title }}</h2>
-        <p class="list-card__meta">
-          Published {{ article.publishedDate | date: 'medium' }} · {{
-          article.commentCount }} comments
-        </p>
-        <p class="list-card__excerpt">{{ article.excerpt }}</p>
-        @if (article.category) {
-        <span class="list-card__badge">{{ article.category }}</span>
-        }
-      </a>
-    </li>
+    @if (listState() === 'empty') {
+    <p class="status-role__empty" role="status">No articles available</p>
+    } @else if (listState() === 'no-results') {
+    <p class="status-role__notFound" role="status">No matching articles</p>
+    } @else {
+    <ul class="list-grid">
+      @for (article of filteredArticles(); track trackById($index, article)) {
+      <li class="list-grid__cell">
+        <article class="list-card">
+          <a class="list-card__link" [routerLink]="['/article', article.id]">
+            <span class="list-card__media" aria-hidden="true"></span>
+            <div class="list-card__body">
+              @if (article.category) {
+              <span class="list-card__category">{{ article.category }}</span>
+              }
+              <h2 class="list-card__title">{{ article.title }}</h2>
+              <p class="list-card__excerpt">{{ article.excerpt }}</p>
+              <div class="list-card__footer">
+                <p class="list-card__author">Clinked Team</p>
+                <time
+                  class="list-card__date"
+                  [attr.datetime]="article.publishedDate"
+                  >{{ article.publishedDate | date: 'd MMM y' }}</time
+                >
+              </div>
+            </div>
+          </a>
+        </article>
+      </li>
+      }
+    </ul>
     }
-  </ul>
+  </div>
+  } @if (listState() === 'loading') {
+  <p class="status-role__loading" role="status">Loading articles…</p>
   }
 </section>

@@ -16,6 +16,8 @@ $clinked-blog-font-family: string.unquote(
   border: 0;
   box-sizing: border-box;
   color: inherit;
+}
+* {
   background: transparent;
 }
 html {
@@ -28,5 +30,23 @@ body {
   font-size: tokens.$font-size-base;
   font-weight: tokens.$font-weight-normal;
   letter-spacing: tokens.$letter-spacing-display;
-  color: black;
+  color: tokens.$color-navy;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-detail-page__ready,
+  .article-create-page,
+  app-comment-list {
+    animation: none !important;
+  }
+  .list-card {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+  .list-search,
+  .list-search__btn,
+  app-site-header .site-header__link,
+  app-site-header .site-header__brand {
+    transition-duration: 0.01ms !important;
+  }
 }
